@@ -15,7 +15,6 @@ namespace TTTReborn.Items
         public ModelEntity GrabbedEntity { get; set; }
 
         private static int GRAB_DISTANCE => 80;
-        private Rotation eyeRot;
         private Vector3 eyePos;
         private Vector3 eyeDir;
 
@@ -31,22 +30,28 @@ namespace TTTReborn.Items
                 return;
             }
 
-            eyeRot = Rotation.From(new Angles(0.0f, player.EyeRot.Angles().yaw, 0.0f));
             eyePos = player.EyePos;
             eyeDir = player.EyeRot.Forward;
 
             using (Prediction.Off())
             {
-                if (Input.Down(InputButton.Attack1) && !GrabbedEntity.IsValid())
+                if (GrabbedEntity.IsValid())
                 {
-                    TryStartGrab(player);
-                } else if (Input.Down(InputButton.Attack2) && GrabbedEntity.IsValid())
+                    if (Input.Pressed(InputButton.Attack2))
+                    {
+                        DropEntity();
+                    }
+                    else
+                    {
+                        MoveEntity(player);
+                    }
+                }
+                else
                 {
-                    GrabbedEntity.EnableAllCollisions = true;
-                    GrabbedEntity = null;
-                } else if (GrabbedEntity.IsValid())
-                {
-                    MoveEntity(player);
+                    if (Input.Pressed((InputButton.Attack1)))
+                    {
+                        GrabEntity(player);
+                    }
                 }
             }
         }
@@ -54,10 +59,11 @@ namespace TTTReborn.Items
         private void MoveEntity(TTTPlayer player)
         {
             var attachment = player.GetAttachment("middle_of_both_hands")!.Value;
-            GrabbedEntity.Position = attachment.Position.
+            GrabbedEntity.Position = attachment.Position;
+            GrabbedEntity.Rotation = attachment.Rotation.RotateAroundAxis(Vector3.Backward, 90);
         }
 
-        private void TryStartGrab(TTTPlayer player)
+        private void GrabEntity(TTTPlayer player)
         {
             TraceResult tr = Trace.Ray(eyePos, eyePos + eyeDir * GRAB_DISTANCE)
                 .UseHitboxes()
@@ -66,15 +72,21 @@ namespace TTTReborn.Items
                 .EntitiesOnly()
                 .Run();
 
-            DebugOverlay.Line(eyePos, eyePos + eyeDir * GRAB_DISTANCE, Color.Yellow);
-
             if (!tr.Hit || !tr.Entity.IsValid() || tr.Entity is not ModelEntity entity)
             {
                 return;
             }
 
             GrabbedEntity = entity;
+            GrabbedEntity.Parent = player;
             GrabbedEntity.EnableAllCollisions = false;
+        }
+
+        private void DropEntity()
+        {
+            GrabbedEntity.EnableAllCollisions = true;
+            GrabbedEntity.Parent = null;
+            GrabbedEntity = null;
         }
 
         public override void SimulateAnimator(PawnAnimator anim)
@@ -84,7 +96,6 @@ namespace TTTReborn.Items
                 return;
             }
 
-            // TODO: Convert to event?
             if (GrabbedEntity.IsValid())
             {
                 anim.SetParam("holdtype", 4);
