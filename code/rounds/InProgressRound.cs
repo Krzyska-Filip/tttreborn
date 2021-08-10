@@ -115,7 +115,7 @@ namespace TTTReborn.Rounds
         {
             Inventory inventory = player.Inventory as Inventory;
 
-            inventory.TryAdd(new MagnetoStick(), true);
+            inventory.TryAdd(new MagnetoStick());
 
             // Randomize between SMG and shotgun
             if (new Random().Next() % 2 == 0)

@@ -119,6 +119,8 @@ namespace TTTReborn.Player
             Inventory.DeleteContents();
             Gamemode.Game.Instance.Round.OnPlayerSpawn(this);
 
+            Inventory.Add(new Hands(), true);
+
             switch (Gamemode.Game.Instance.Round)
             {
                 // hacky
