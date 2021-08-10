@@ -30,34 +30,30 @@ namespace TTTReborn.Items
                 return;
             }
 
-            eyePos = player.EyePos;
-            eyeDir = player.EyeRot.Forward;
-
             using (Prediction.Off())
             {
-                if (GrabbedEntity.IsValid())
+                if (Input.Pressed(InputButton.Attack1))
                 {
-                    if (Input.Pressed(InputButton.Attack2))
-                    {
-                        DropEntity();
-                    }
-                    else
-                    {
-                        MoveEntity(player);
-                    }
+                    GrabEntity(player);
+                }
+                else if (Input.Released(InputButton.View))
+                {
+                    DropEntity();
                 }
                 else
                 {
-                    if (Input.Pressed((InputButton.Attack1)))
-                    {
-                        GrabEntity(player);
-                    }
+                    MoveEntity(player);
                 }
             }
         }
 
         private void MoveEntity(TTTPlayer player)
         {
+            if (!GrabbedEntity.IsValid())
+            {
+                return;
+            }
+
             var attachment = player.GetAttachment("middle_of_both_hands")!.Value;
             GrabbedEntity.Position = attachment.Position;
             GrabbedEntity.Rotation = attachment.Rotation.RotateAroundAxis(Vector3.Backward, 90);
@@ -65,6 +61,14 @@ namespace TTTReborn.Items
 
         private void GrabEntity(TTTPlayer player)
         {
+            if (GrabbedEntity.IsValid())
+            {
+                return;
+            }
+
+            eyePos = player.EyePos;
+            eyeDir = player.EyeRot.Forward;
+
             TraceResult tr = Trace.Ray(eyePos, eyePos + eyeDir * GRAB_DISTANCE)
                 .UseHitboxes()
                 .Ignore(player)
@@ -84,9 +88,21 @@ namespace TTTReborn.Items
 
         private void DropEntity()
         {
+            if (!GrabbedEntity.IsValid())
+            {
+                return;
+            }
+
             GrabbedEntity.EnableAllCollisions = true;
             GrabbedEntity.Parent = null;
             GrabbedEntity = null;
+        }
+
+        public override void ActiveEnd(Entity ent, bool dropped)
+        {
+            DropEntity();
+
+            base.ActiveEnd(ent, dropped);
         }
 
         public override void SimulateAnimator(PawnAnimator anim)
