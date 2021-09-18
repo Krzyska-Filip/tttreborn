@@ -159,6 +159,16 @@ namespace TTTReborn.Globals
             return sourceUnits / 39.37f;
         }
 
+        /// <summary>
+        /// Returns seconds in the format mm:ss
+        /// </summary>
+        /// <param name="seconds"></param>
+        /// <returns>Seconds as a string in the format "mm:ss"</returns>
+        public static string TimerString(float seconds)
+        {
+            return TimeSpan.FromSeconds(seconds).ToString(@"mm\:ss");
+        }
+
         public static T GetHoveringPanel<T>(Panel excludePanel, Panel rootPanel = null) where T : Panel
         {
             rootPanel ??= UI.Hud.Current.RootPanel;
@@ -206,6 +216,24 @@ namespace TTTReborn.Globals
         {
             Client,
             Server
+        }
+
+        public static void CreateRecursiveDirectories(string fileName)
+        {
+            string[] splits = fileName.Split('/');
+            string currentDir = "";
+
+            for (int i = 0; i < splits.Length - 1; i++)
+            {
+                currentDir += splits[i];
+
+                if (!FileSystem.Data.DirectoryExists(currentDir))
+                {
+                    FileSystem.Data.CreateDirectory(currentDir);
+                }
+
+                currentDir += '/';
+            }
         }
     }
 }

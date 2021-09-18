@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Sandbox;
 using Sandbox.UI;
 
@@ -36,7 +38,7 @@ namespace TTTReborn.UI
 
                 if (Local.Client.Pawn is TTTPlayer player && player.LifeState == LifeState.Alive)
                 {
-                    hud.AliveHudPanel.CreateHud();
+                    hud.AliveHudPanel.Enabled = true;
                 }
             }
         }
@@ -49,7 +51,7 @@ namespace TTTReborn.UI
                 return;
             }
 
-            Current?.AliveHudPanel.CreateHud();
+            Current.AliveHudPanel.Enabled = true;
         }
 
         [Event("tttreborn.player.died")]
@@ -60,20 +62,27 @@ namespace TTTReborn.UI
                 return;
             }
 
-            Current?.AliveHudPanel.DeleteHud();
+            Current.AliveHudPanel.Enabled = false;
         }
 
-        public class GeneralHud : TTTPanel
+        public class GeneralHud : Panel
         {
-            public GeneralHud(Panel parent)
+            public GeneralHud(Sandbox.UI.Panel parent) : base(parent)
             {
                 Parent = parent;
 
-                Parent.AddChild<PlayerInfo>();
+                Parent.AddChild<RadarDisplay>();
+                Parent.AddChild<Crosshair>();
+                Parent.AddChild<PlayerRoleDisplay>();
+                Parent.AddChild<PlayerInfoDisplay>();
                 Parent.AddChild<InventoryWrapper>();
                 Parent.AddChild<ChatBox>();
+
+                Parent.AddChild<VoiceChatDisplay>();
+                Parent.AddChild<GameTimerDisplay>();
+
                 Parent.AddChild<VoiceList>();
-                Parent.AddChild<GameTimer>();
+
                 Parent.AddChild<InfoFeed>();
                 Parent.AddChild<InspectMenu>();
                 Parent.AddChild<PostRoundMenu>();
@@ -82,23 +91,15 @@ namespace TTTReborn.UI
             }
         }
 
-        public class AliveHud : TTTPanel
+        public class AliveHud : Panel
         {
-            public AliveHud(Panel parent)
+            public AliveHud(Sandbox.UI.Panel parent) : base(parent)
             {
                 Parent = parent;
-            }
 
-            public void CreateHud()
-            {
-                Parent.AddChild<DamageIndicator>();
-                Parent.AddChild<QuickShop>();
                 Parent.AddChild<DrowningIndicator>();
-            }
-
-            public void DeleteHud()
-            {
-                DeleteChildren(true);
+                Parent.AddChild<QuickShop>();
+                Parent.AddChild<DamageIndicator>();
             }
         }
     }
